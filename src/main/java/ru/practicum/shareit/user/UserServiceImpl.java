@@ -13,8 +13,6 @@ import java.util.List;
 class UserServiceImpl implements UserService {
     private final UserRepository repository;
 
-    private long id;
-
     @Override
     public User createUser(User user) {
         List<String> emails = repository.findAllUsers().stream()
@@ -23,7 +21,6 @@ class UserServiceImpl implements UserService {
         if (emails.contains(user.getEmail())) {
             throw new DuplicatedDataException("Пользователь с таким email уже существует");
         }
-        user.setId(++id);
         return repository.saveUser(user);
     }
 

@@ -3,6 +3,8 @@ package ru.practicum.shareit.user;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
@@ -14,24 +16,29 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
-        return userService.createUser(user);
+    public UserDto createUser(@Valid @RequestBody UserDto userDto) {
+        User user = userService.createUser(UserMapper.mapToUser(userDto));
+        return UserMapper.mapToUserDto(user);
     }
 
     @PatchMapping("/{userId}")
-    public User updateUser(@PathVariable Long userId,
-                           @RequestBody UpdateUserRequest updateUserRequest) {
-        return userService.updateUser(userId, updateUserRequest);
+    public UserDto updateUser(@PathVariable Long userId,
+                              @RequestBody UpdateUserRequest updateUserRequest) {
+        User user = userService.updateUser(userId, updateUserRequest);
+        return UserMapper.mapToUserDto(user);
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserDto> getAllUsers() {
+        return userService.getAllUsers().stream()
+                .map(UserMapper::mapToUserDto)
+                .toList();
     }
 
     @GetMapping("/{userId}")
-    User findUserById(@PathVariable Long userId) {
-        return userService.getUserById(userId);
+    UserDto findUserById(@PathVariable Long userId) {
+        User user = userService.getUserById(userId);
+        return UserMapper.mapToUserDto(user);
     }
 
     @DeleteMapping("/{userId}")

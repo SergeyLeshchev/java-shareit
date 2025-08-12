@@ -9,10 +9,13 @@ import java.util.*;
 public class UserRepositoryImpl implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
 
+    private long id;
+
     @Override
     public User saveUser(User user) {
-        users.put(user.getId(), user);
-        return users.get(user.getId());
+        user.setId(++id);
+        users.put(id, user);
+        return users.get(id);
     }
 
     @Override

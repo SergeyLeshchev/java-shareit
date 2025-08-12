@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
 public class ItemRepositoryImpl implements ItemRepository {
     private final Map<Long, Item> items = new HashMap<>();
 
+    private long id;
+
     @Override
     public Item saveItem(Item item) {
-        items.put(item.getId(), item);
-        return items.get(item.getId());
+        item.setId(++id);
+        items.put(id, item);
+        return items.get(id);
     }
 
     @Override

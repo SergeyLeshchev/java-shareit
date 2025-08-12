@@ -15,8 +15,6 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
-    private long id;
-
     @Override
     public Item createItem(Item item) {
         if (!userRepository.findAllUsers().stream()
@@ -24,7 +22,6 @@ public class ItemServiceImpl implements ItemService {
                 .toList().contains(item.getOwner())) {
             throw new NotFoundException("Пользователь с таким id не найден");
         }
-        item.setId(id++);
         return itemRepository.saveItem(item);
     }
 
