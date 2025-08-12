@@ -7,7 +7,7 @@ import java.util.*;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
-    private static final Map<Long, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
 
     @Override
     public User saveUser(User user) {
