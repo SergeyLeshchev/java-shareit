@@ -3,6 +3,7 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.DuplicatedDataException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.ArrayList;
@@ -15,23 +16,24 @@ class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-        List<String> emails = repository.findAllUsers().stream()
+        List<String> emails = repository.findAll().stream()
                 .map(User::getEmail)
                 .toList();
         if (emails.contains(user.getEmail())) {
             throw new DuplicatedDataException("Пользователь с таким email уже существует");
         }
-        return repository.saveUser(user);
+        return repository.save(user);
     }
 
     @Override
     public User updateUser(long userId, UpdateUserRequest updateUserRequest) {
-        User user = repository.findUserById(userId);
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь"));
         if (updateUserRequest.hasName()) {
             user.setName(updateUserRequest.getName());
         }
         if (updateUserRequest.hasEmail()) {
-            List<User> users = new ArrayList<>(repository.findAllUsers());
+            List<User> users = new ArrayList<>(repository.findAll());
             users.remove(user);
             List<String> emails = users.stream()
                     .map(User::getEmail)
@@ -41,21 +43,24 @@ class UserServiceImpl implements UserService {
             }
             user.setEmail(updateUserRequest.getEmail());
         }
-        return repository.updateUser(userId, user);
+        return repository.save(user);
     }
 
     @Override
     public List<User> getAllUsers() {
-        return repository.findAllUsers();
+        return repository.findAll();
     }
 
     @Override
     public User getUserById(long id) {
-        return repository.findUserById(id);
+        return repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь"));
     }
 
     @Override
     public void deleteUser(long id) {
-        repository.deleteUser(id);
+        User user = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь"));
+        repository.delete(user);
     }
 }
