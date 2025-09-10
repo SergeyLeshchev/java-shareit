@@ -175,7 +175,7 @@ public class ItemServiceImpl implements ItemService {
                 // Если все бронирования данной вещи заканчиваются позже чем сейчас, то пользователь не может
                 // оставить комментарий
                 .allMatch(booking ->
-                        booking.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC")).plusHours(3)))) {
+                        booking.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC"))))) {
             throw new BadRequestException("Оставлять комментарий к вещи может только пользователь, " +
                     "который брал эту вещь в аренду, и аренда завершена");
         }
