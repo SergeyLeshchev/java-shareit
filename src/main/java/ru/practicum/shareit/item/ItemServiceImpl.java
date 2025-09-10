@@ -15,6 +15,8 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -172,8 +174,10 @@ public class ItemServiceImpl implements ItemService {
         if (bookings.stream()
                 // Выбираем все бронирования, которые создавал данный пользователь на данную вещь
                 .filter(booking -> booking.getItem().getId().equals(itemId))
-                // Если все вещи в статусе APPROVED, то пользователь не может оставить комментарий
-                .noneMatch(booking -> booking.getStatus().equals(Status.APPROVED))) {
+                // Если все бронирования данной вещи заканчиваются позже чем сейчас, то пользователь не может
+                // оставить комментарий
+                .allMatch(booking ->
+                        booking.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC")).plusHours(2)))) {
             throw new BadRequestException("Оставлять комментарий к вещи может только пользователь, " +
                     "который брал эту вещь в аренду, и аренда завершена");
         }
