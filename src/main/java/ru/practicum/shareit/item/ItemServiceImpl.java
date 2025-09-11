@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.DataAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.CommentMapper;
@@ -12,11 +13,11 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
-import ru.practicum.shareit.user.model.User;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,11 +33,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item createItem(Item item, Long userId) {
-        if (!userRepository.findAll().stream()
-                .map(User::getId)
-                .toList().contains(userId)) {
-            throw new NotFoundException("Пользователь с таким id не найден");
-        }
+        // Проверка существования пользователя
+        // Вещь не может быть null так как создается в маппере
         if (item.getOwner() == null) {
             item.setOwner(userRepository.findById(userId)
                     .orElseThrow(() -> new NotFoundException("Пользователь с таким id не найден")));
@@ -46,14 +44,16 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item updateItem(Long userId, Long itemId, UpdateItemRequest updateItemRequest) {
-        System.out.println(userId);
-        System.out.println(itemId);
-        System.out.println(updateItemRequest.toString());
+        // Проверка существования вещи
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Не найдена вещь"));
-        System.out.println(item.toString());
+        // Проверка существования пользователя
         if (!item.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Изменять вещь может только владелец вещи");
+        }
+        // Проверка существования новых данных для обновления чтобы далее не было выброшено NullPointerException
+        if (updateItemRequest == null) {
+            throw new BadRequestException("Для обновления вещи нужно передать новые данные");
         }
         if (updateItemRequest.hasName()) {
             item.setName(updateItemRequest.getName());
@@ -69,7 +69,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItemsByUserId(Long userId) {
+        // Проверка существования пользователя
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Item> items = itemRepository.findAllByOwnerId(userId);
+        // Проверка, что у пользователя есть вещи
+        if (items.isEmpty()) {
+            throw new NotFoundException("У данного пользователя нет вещей");
+        }
         // Преобразуем в itemDto так как только у них есть поля lastBooking и nextBooking
         List<ItemDto> itemDtos = items.stream()
                 .map(ItemMapper::mapToItemDto)
@@ -77,8 +83,13 @@ public class ItemServiceImpl implements ItemService {
 
         List<Booking> bookings = bookingRepository.findAllByItemOwnerId(userId);
         // Получаем список бронирований для каждой вещи
-        Map<Long, List<Booking>> bookingsForEachItem = bookings.stream()
-                .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
+        Map<Long, List<Booking>> bookingsForEachItem;
+        if (!bookings.isEmpty()) {
+            bookingsForEachItem = bookings.stream()
+                    .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
+        } else {
+            bookingsForEachItem = new HashMap<>();
+        }
         // Получаем список комментариев для каждой вещи
         Map<Long, List<Comment>> commentsForEachItem = commentRepository.findAll().stream()
                 .collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
@@ -128,10 +139,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getItemById(Long itemId) {
+        // Проверка существования вещи
         ItemDto itemDto = ItemMapper.mapToItemDto(
                 itemRepository.findById(itemId)
                         .orElseThrow(() -> new NotFoundException("Не найдена вещь"))
         );
+        // Проверка существования комментариев
         List<Comment> comments = commentRepository.findAllByItemId(itemId);
         if (comments != null && !comments.isEmpty()) {
             itemDto.setComments(
@@ -145,9 +158,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public void deleteItem(Long itemId) {
+    public void deleteItem(Long userId, Long itemId) {
+        // Проверка существования вещи
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Не удалось найти вещь"));
+        // Проверка существования пользователя, и что он является владельцем
+        if (!item.getOwner().getId().equals(userId)) {
+            throw new DataAccessException("Только владелец вещи может удалить вещь");
+        }
         itemRepository.delete(item);
     }
 
@@ -164,7 +182,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Comment createComment(Long userId, Long itemId, Comment comment) {
+        // Проверка существования пользователя
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Booking> bookings = bookingRepository.findAllByBookerId(userId);
+        // Проверка, что у пользователя есть бронирования на эту вещь
         if (bookings.isEmpty()) {
             throw new BadRequestException("Оставлять комментарий к вещи может только пользователь, " +
                     "который брал эту вещь в аренду");
@@ -179,6 +200,7 @@ public class ItemServiceImpl implements ItemService {
             throw new BadRequestException("Оставлять комментарий к вещи может только пользователь, " +
                     "который брал эту вещь в аренду, и аренда завершена");
         }
+        // Комментарий не может быть null так как создается в маппере
         return commentRepository.save(comment);
     }
 }

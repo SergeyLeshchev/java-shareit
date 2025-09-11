@@ -12,7 +12,7 @@ import ru.practicum.shareit.user.model.User;
  */
 @AllArgsConstructor
 @Entity
-@Table(name = "users")
+@Table(name = "requests")
 @Getter
 @Setter
 @ToString
@@ -24,7 +24,7 @@ public class ItemRequest {
     @Column(nullable = false)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "requestor_id", nullable = false)
     private User requester;
 }

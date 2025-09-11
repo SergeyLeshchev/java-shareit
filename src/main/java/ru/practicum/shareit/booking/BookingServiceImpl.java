@@ -7,6 +7,8 @@ import ru.practicum.shareit.exception.DataAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.UserRepository;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Service
@@ -17,44 +19,60 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking createBooking(Long userId, Booking booking) {
+        // Существование пользователя и вещи осуществляется в маппере.
+        // Существование вещи в других методах не проверяю так как не может быть создано бронирование без вещи
         if (booking.getStart().equals(booking.getEnd())) {
             throw new BadRequestException("Начало и завершение бронирования не могут быть в одно время");
         }
         if (!booking.getItem().getAvailable()) {
             throw new BadRequestException("Нельзя забронировать вещь, которая недоступна");
         }
+
+        List<Booking> bookings = bookingRepository.findAllByItemId(booking.getItem().getId());
+        if (bookings.stream()
+                // Выбираем только те бронирования, которые актуальны на настоящий момент
+                .filter(booking1 -> booking1.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC"))))
+                // Проверяем пересекается ли новое бронирование с уже существующими
+                .anyMatch(booking1 -> !(booking.getStart().isAfter(booking1.getEnd()) ||
+                        booking.getEnd().isBefore(booking1.getStart())))) {
+            throw new BadRequestException("Новое бронирование пересекается с уже существующими бронированиями");
+        }
         booking.setStatus(Status.WAITING);
         return bookingRepository.save(booking);
     }
 
     @Override
-    public Booking updateBookingStatus(Long userId, Long bookingId, String approved) {
-        if (approved == null || approved.isBlank()) {
-            throw new BadRequestException("Статус бронирования можнт быть только " +
-                    "WAITING, APPROVED, REJECTED, CANCELED, CURRENT, PAST, FUTURE или ALL");
+    public Booking updateBookingStatus(Long userId, Long bookingId, Boolean approved) {
+        if (approved == null) {
+            throw new BadRequestException("Чтобы изменить статус бронирования, нужно передать параметр approved " +
+                    "со значением true или false");
         }
+        // Проверка на существование бронирования
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
+        // Здесь проверка покажет, является ли пользователь владельцем вещи.
+        // Если пользователь не существует, то так же будет выброшено исключение
         if (!userId.equals(booking.getItem().getOwner().getId())) {
             throw new DataAccessException("Менять статус бронирования может только владелец бронируемой вещи");
         }
-
-        if (approved.equals("true")) {
+        if (!booking.getStatus().equals(Status.WAITING)) {
+            throw new BadRequestException("Отклонить или подтвердить можно бронирования только в статусе WAITING");
+        }
+        if (approved) {
             booking.setStatus(Status.APPROVED);
-        } else if (approved.equals("false")) {
-            booking.setStatus(Status.CANCELED);
         } else {
-            throw new BadRequestException("Статус бронирования можнт быть только " +
-                    "WAITING, APPROVED, REJECTED, CANCELED, CURRENT, PAST, FUTURE или ALL");
+            booking.setStatus(Status.CANCELED);
         }
         return bookingRepository.save(booking);
     }
 
     @Override
     public Booking getBookingById(Long userId, Long bookingId) {
+        // Проверка на существование бронирования
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
-
+        // Здесь проверка покажет, является ли пользователь владельцем вещи.
+        // Если пользователь не существует, то так же будет выброшено исключение
         if (!userId.equals(booking.getBooker().getId()) &&
                 !userId.equals(booking.getItem().getOwner().getId())) {
             throw new DataAccessException("Получить данные о бронировании может только автор " +
@@ -64,42 +82,24 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getAllBookingsByUser(Long userId, String state) {
+    public List<Booking> getAllBookingsByUser(Long userId, Status status) {
+        // Проверка существования пользователя
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Status status;
-        try {
-            status = Status.valueOf(state.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Статус бронирования можнт быть только " +
-                    "WAITING, APPROVED, REJECTED, CANCELED, CURRENT, PAST, FUTURE или ALL");
-        }
-        List<Booking> bookings = bookingRepository.findAllByBookerId(userId);
         if (status.equals(Status.ALL)) {
-            return bookings;
+            return bookingRepository.findAllByBookerId(userId);
         }
-        return bookings.stream()
-                .filter(booking -> booking.getStatus().equals(status))
-                .toList();
+        return bookingRepository.findAllByBookerIdAndStatus(userId, status);
     }
 
     @Override
-    public List<Booking> getAllBookingsByOwner(Long userId, String state) {
+    public List<Booking> getAllBookingsByOwner(Long userId, Status status) {
+        // Проверка существования пользователя
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Status status;
-        try {
-            status = Status.valueOf(state.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Статус бронирования можнт быть только " +
-                    "WAITING, APPROVED, REJECTED, CANCELED, CURRENT, PAST, FUTURE или ALL");
-        }
-        List<Booking> bookings = bookingRepository.findAllByItemOwnerId(userId);
         if (status.equals(Status.ALL)) {
-            return bookings;
+            return bookingRepository.findAllByItemOwnerId(userId);
         }
-        return bookings.stream()
-                .filter(booking -> booking.getStatus().equals(status))
-                .toList();
+        return bookingRepository.findAllByItemOwnerIdAndStatus(userId, status);
     }
 }

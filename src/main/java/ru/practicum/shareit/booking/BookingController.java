@@ -31,7 +31,7 @@ public class BookingController {
     @PatchMapping("/{bookingId}")
     public BookingResponseDto updateBookingStatus(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                   @PathVariable Long bookingId,
-                                                  @RequestParam String approved) {
+                                                  @RequestParam Boolean approved) {
         Booking booking = bookingService.updateBookingStatus(userId, bookingId, approved);
         return bookingMapper.mapToBookingResponseDto(booking);
     }
@@ -45,8 +45,9 @@ public class BookingController {
 
     @GetMapping()
     public List<BookingResponseDto> getAllBookingsByUser(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                         @RequestParam(defaultValue = "ALL") String state) {
-        return bookingService.getAllBookingsByUser(userId, state)
+                                                         @RequestParam(name = "state",
+                                                                 defaultValue = "ALL") Status status) {
+        return bookingService.getAllBookingsByUser(userId, status)
                 .stream()
                 .map(bookingMapper::mapToBookingResponseDto)
                 .toList();
@@ -54,8 +55,9 @@ public class BookingController {
 
     @GetMapping("/owner")
     public List<BookingResponseDto> getAllBookingsByOwner(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                          @RequestParam(defaultValue = "ALL") String state) {
-        return bookingService.getAllBookingsByOwner(userId, state)
+                                                          @RequestParam(name = "state",
+                                                                  defaultValue = "ALL") Status status) {
+        return bookingService.getAllBookingsByOwner(userId, status)
                 .stream()
                 .map(bookingMapper::mapToBookingResponseDto)
                 .toList();
