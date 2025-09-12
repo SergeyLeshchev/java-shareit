@@ -13,6 +13,7 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -29,7 +30,6 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
-    private final CommentMapper commentMapper;
 
     @Override
     public Item createItem(Item item, Long userId) {
@@ -128,7 +128,7 @@ public class ItemServiceImpl implements ItemService {
                 if (comments != null && !comments.isEmpty()) {
                     itemDto.setComments(
                             comments.stream()
-                                    .map(commentMapper::mapToCommentDto)
+                                    .map(CommentMapper::mapToCommentDto)
                                     .toList()
                     );
                 }
@@ -149,7 +149,7 @@ public class ItemServiceImpl implements ItemService {
         if (comments != null && !comments.isEmpty()) {
             itemDto.setComments(
                     comments.stream()
-                            .map(commentMapper::mapToCommentDto)
+                            .map(CommentMapper::mapToCommentDto)
                             .toList()
             );
         }
@@ -183,7 +183,14 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Comment createComment(Long userId, Long itemId, Comment comment) {
         // Проверка существования пользователя
-        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        User author = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        // Проверка существования вещи
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
+        comment.setAuthor(author);
+        comment.setItem(item);
+
         List<Booking> bookings = bookingRepository.findAllByBookerId(userId);
         // Проверка, что у пользователя есть бронирования на эту вещь
         if (bookings.isEmpty()) {
@@ -192,15 +199,13 @@ public class ItemServiceImpl implements ItemService {
         }
         if (bookings.stream()
                 // Выбираем все бронирования, которые создавал данный пользователь на данную вещь
-                .filter(booking -> booking.getItem().getId().equals(itemId))
+                .filter(b -> b.getItem().getId().equals(itemId))
                 // Если все бронирования данной вещи заканчиваются позже чем сейчас, то пользователь не может
                 // оставить комментарий
-                .allMatch(booking ->
-                        booking.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC"))))) {
+                .allMatch(b -> b.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC"))))) {
             throw new BadRequestException("Оставлять комментарий к вещи может только пользователь, " +
                     "который брал эту вещь в аренду, и аренда завершена");
         }
-        // Комментарий не может быть null так как создается в маппере
         return commentRepository.save(comment);
     }
 }

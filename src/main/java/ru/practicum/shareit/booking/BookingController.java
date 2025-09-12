@@ -18,14 +18,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingService bookingService;
-    private final BookingMapper bookingMapper;
 
     @PostMapping
     public BookingResponseDto createBooking(@RequestHeader("X-Sharer-User-Id") Long userId,
                                             @Valid @RequestBody BookingRequestDto bookingRequestDto) {
-        Booking booking = bookingService.createBooking(userId,
-                bookingMapper.mapToBooking(userId, bookingRequestDto));
-        return bookingMapper.mapToBookingResponseDto(booking);
+        Booking booking = bookingService.createBooking(userId, bookingRequestDto.getItemId(),
+                BookingMapper.mapToBooking(userId, bookingRequestDto));
+        return BookingMapper.mapToBookingResponseDto(booking);
     }
 
     @PatchMapping("/{bookingId}")
@@ -33,14 +32,14 @@ public class BookingController {
                                                   @PathVariable Long bookingId,
                                                   @RequestParam Boolean approved) {
         Booking booking = bookingService.updateBookingStatus(userId, bookingId, approved);
-        return bookingMapper.mapToBookingResponseDto(booking);
+        return BookingMapper.mapToBookingResponseDto(booking);
     }
 
     @GetMapping("/{bookingId}")
     public BookingResponseDto getBookingById(@RequestHeader("X-Sharer-User-Id") Long userId,
                                              @PathVariable Long bookingId) {
         Booking booking = bookingService.getBookingById(userId, bookingId);
-        return bookingMapper.mapToBookingResponseDto(booking);
+        return BookingMapper.mapToBookingResponseDto(booking);
     }
 
     @GetMapping()
@@ -49,7 +48,7 @@ public class BookingController {
                                                                  defaultValue = "ALL") Status status) {
         return bookingService.getAllBookingsByUser(userId, status)
                 .stream()
-                .map(bookingMapper::mapToBookingResponseDto)
+                .map(BookingMapper::mapToBookingResponseDto)
                 .toList();
     }
 
@@ -59,7 +58,7 @@ public class BookingController {
                                                                   defaultValue = "ALL") Status status) {
         return bookingService.getAllBookingsByOwner(userId, status)
                 .stream()
-                .map(bookingMapper::mapToBookingResponseDto)
+                .map(BookingMapper::mapToBookingResponseDto)
                 .toList();
     }
 }

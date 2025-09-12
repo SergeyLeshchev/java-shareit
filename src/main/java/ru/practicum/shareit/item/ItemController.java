@@ -16,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
-    private final CommentMapper commentMapper;
 
     @PostMapping
     public ItemDto createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
@@ -62,9 +61,8 @@ public class ItemController {
     public CommentDto createComment(@RequestHeader("X-Sharer-User-Id") Long userId,
                                     @PathVariable Long itemId,
                                     @RequestBody CommentDto commentDto) {
-        return commentMapper.mapToCommentDto(
-                itemService.createComment(userId, itemId,
-                        commentMapper.mapToComment(userId, itemId, commentDto))
+        return CommentMapper.mapToCommentDto(
+                itemService.createComment(userId, itemId, CommentMapper.mapToComment(commentDto))
         );
     }
 }

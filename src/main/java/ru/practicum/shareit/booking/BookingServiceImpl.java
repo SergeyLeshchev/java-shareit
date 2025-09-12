@@ -5,7 +5,10 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.DataAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -16,25 +19,32 @@ import java.util.List;
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
-    public Booking createBooking(Long userId, Booking booking) {
-        // Существование пользователя и вещи осуществляется в маппере.
-        // Существование вещи в других методах не проверяю так как не может быть создано бронирование без вещи
+    public Booking createBooking(Long userId, Long itemId, Booking booking) {
+        // Проверка на существование пользователя
+        User booker = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с таким id не найден"));
+        // Проверка на существование вещи
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с таким id не найдена"));
+        booking.setBooker(booker);
+        booking.setItem(item);
         if (booking.getStart().equals(booking.getEnd())) {
             throw new BadRequestException("Начало и завершение бронирования не могут быть в одно время");
         }
-        if (!booking.getItem().getAvailable()) {
+        if (!item.getAvailable()) {
             throw new BadRequestException("Нельзя забронировать вещь, которая недоступна");
         }
 
-        List<Booking> bookings = bookingRepository.findAllByItemId(booking.getItem().getId());
+        List<Booking> bookings = bookingRepository.findAllByItemId(item.getId());
         if (bookings.stream()
                 // Выбираем только те бронирования, которые актуальны на настоящий момент
-                .filter(booking1 -> booking1.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC"))))
+                .filter(b -> b.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC"))))
                 // Проверяем пересекается ли новое бронирование с уже существующими
-                .anyMatch(booking1 -> !(booking.getStart().isAfter(booking1.getEnd()) ||
-                        booking.getEnd().isBefore(booking1.getStart())))) {
+                .anyMatch(b -> !(booking.getStart().isAfter(b.getEnd()) ||
+                        booking.getEnd().isBefore(b.getStart())))) {
             throw new BadRequestException("Новое бронирование пересекается с уже существующими бронированиями");
         }
         booking.setStatus(Status.WAITING);
