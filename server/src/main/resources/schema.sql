@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS requests (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     description VARCHAR(1024) NOT NULL,
     requestor_id BIGINT NOT NULL,
+    created TIMESTAMP WITH TIME ZONE NOT NULL,
     FOREIGN KEY (requestor_id) REFERENCES users(id)
 );
 
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     end_date TIMESTAMP WITH TIME ZONE NOT NULL,
     item_id BIGINT NOT NULL,
     booker_id BIGINT NOT NULL,
-    status VARCHAR(255) NOT NULL,
+    state VARCHAR(255) NOT NULL,
     FOREIGN KEY (item_id) REFERENCES items(id),
     FOREIGN KEY (booker_id) REFERENCES users(id)
 );

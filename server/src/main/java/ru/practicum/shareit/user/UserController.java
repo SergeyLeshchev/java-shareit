@@ -18,6 +18,7 @@ public class UserController {
     @PostMapping
     public UserDto createUser(@Valid @RequestBody UserDto userDto) {
         User user = userService.createUser(UserMapper.mapToUser(userDto));
+        user.setName("Петросян9");
         return UserMapper.mapToUserDto(user);
     }
 
@@ -36,13 +37,13 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    UserDto findUserById(@PathVariable Long userId) {
+    public UserDto findUserById(@PathVariable Long userId) {
         User user = userService.getUserById(userId);
         return UserMapper.mapToUserDto(user);
     }
 
     @DeleteMapping("/{userId}")
-    void deleteUser(@PathVariable Long userId) {
+    public void deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
     }
 }

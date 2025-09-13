@@ -7,11 +7,11 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByBookerId(Long bookerId);
 
-    List<Booking> findAllByBookerIdAndStatus(Long bookerId, Status status);
+    List<Booking> findAllByBookerIdAndState(Long bookerId, BookingState state);
 
     List<Booking> findAllByItemOwnerId(Long ownerId);
 
-    List<Booking> findAllByItemOwnerIdAndStatus(Long ownerId, Status status);
+    List<Booking> findAllByItemOwnerIdAndState(Long ownerId, BookingState state);
 
     List<Booking> findAllByItemId(Long itemId);
 }

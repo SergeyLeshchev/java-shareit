@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.model.Comment;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Component
@@ -15,7 +16,7 @@ public class CommentMapper {
         return new CommentDto(
                 comment.getId(),
                 comment.getText(),
-                comment.getItem(),
+                ItemMapper.mapToItemDto(comment.getItem()),
                 comment.getAuthor().getName(),
                 comment.getCreated().toLocalDateTime()
         );

@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.ToString;
 import ru.practicum.shareit.user.model.User;
 
+import java.time.ZonedDateTime;
+
 /**
  * TODO Sprint add-item-requests.
  */
@@ -26,5 +28,8 @@ public class ItemRequest {
 
     @ManyToOne
     @JoinColumn(name = "requestor_id", nullable = false)
-    private User requester;
+    private User requestor;
+
+    @Column(nullable = false)
+    private ZonedDateTime created;
 }

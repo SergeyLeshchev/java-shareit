@@ -47,12 +47,12 @@ public class BookingServiceImpl implements BookingService {
                         booking.getEnd().isBefore(b.getStart())))) {
             throw new BadRequestException("Новое бронирование пересекается с уже существующими бронированиями");
         }
-        booking.setStatus(Status.WAITING);
+        booking.setState(BookingState.WAITING);
         return bookingRepository.save(booking);
     }
 
     @Override
-    public Booking updateBookingStatus(Long userId, Long bookingId, Boolean approved) {
+    public Booking updateBookingState(Long userId, Long bookingId, Boolean approved) {
         if (approved == null) {
             throw new BadRequestException("Чтобы изменить статус бронирования, нужно передать параметр approved " +
                     "со значением true или false");
@@ -65,13 +65,13 @@ public class BookingServiceImpl implements BookingService {
         if (!userId.equals(booking.getItem().getOwner().getId())) {
             throw new DataAccessException("Менять статус бронирования может только владелец бронируемой вещи");
         }
-        if (!booking.getStatus().equals(Status.WAITING)) {
+        if (!booking.getState().equals(BookingState.WAITING)) {
             throw new BadRequestException("Отклонить или подтвердить можно бронирования только в статусе WAITING");
         }
         if (approved) {
-            booking.setStatus(Status.APPROVED);
+            booking.setState(BookingState.APPROVED);
         } else {
-            booking.setStatus(Status.CANCELED);
+            booking.setState(BookingState.REJECTED);
         }
         return bookingRepository.save(booking);
     }
@@ -92,24 +92,24 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getAllBookingsByUser(Long userId, Status status) {
+    public List<Booking> getAllBookingsByUser(Long userId, BookingState state) {
         // Проверка существования пользователя
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (status.equals(Status.ALL)) {
+        if (state.equals(BookingState.ALL)) {
             return bookingRepository.findAllByBookerId(userId);
         }
-        return bookingRepository.findAllByBookerIdAndStatus(userId, status);
+        return bookingRepository.findAllByBookerIdAndState(userId, state);
     }
 
     @Override
-    public List<Booking> getAllBookingsByOwner(Long userId, Status status) {
+    public List<Booking> getAllBookingsByOwner(Long userId, BookingState state) {
         // Проверка существования пользователя
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (status.equals(Status.ALL)) {
+        if (state.equals(BookingState.ALL)) {
             return bookingRepository.findAllByItemOwnerId(userId);
         }
-        return bookingRepository.findAllByItemOwnerIdAndStatus(userId, status);
+        return bookingRepository.findAllByItemOwnerIdAndState(userId, state);
     }
 }

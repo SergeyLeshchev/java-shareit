@@ -11,6 +11,8 @@ public enum BookingState {
 	FUTURE,
 	// Завершенные
 	PAST,
+	// Подтвержденные
+	APPROVED,
 	// Отклоненные
 	REJECTED,
 	// Ожидающие подтверждения

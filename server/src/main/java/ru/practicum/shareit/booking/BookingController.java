@@ -28,10 +28,10 @@ public class BookingController {
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingResponseDto updateBookingStatus(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                  @PathVariable Long bookingId,
-                                                  @RequestParam Boolean approved) {
-        Booking booking = bookingService.updateBookingStatus(userId, bookingId, approved);
+    public BookingResponseDto updateBookingState(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                 @PathVariable Long bookingId,
+                                                 @RequestParam Boolean approved) {
+        Booking booking = bookingService.updateBookingState(userId, bookingId, approved);
         return BookingMapper.mapToBookingResponseDto(booking);
     }
 
@@ -44,9 +44,8 @@ public class BookingController {
 
     @GetMapping()
     public List<BookingResponseDto> getAllBookingsByUser(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                         @RequestParam(name = "state",
-                                                                 defaultValue = "ALL") Status status) {
-        return bookingService.getAllBookingsByUser(userId, status)
+                                                         @RequestParam(defaultValue = "ALL") BookingState state) {
+        return bookingService.getAllBookingsByUser(userId, state)
                 .stream()
                 .map(BookingMapper::mapToBookingResponseDto)
                 .toList();
@@ -54,9 +53,8 @@ public class BookingController {
 
     @GetMapping("/owner")
     public List<BookingResponseDto> getAllBookingsByOwner(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                          @RequestParam(name = "state",
-                                                                  defaultValue = "ALL") Status status) {
-        return bookingService.getAllBookingsByOwner(userId, status)
+                                                          @RequestParam(defaultValue = "ALL") BookingState state) {
+        return bookingService.getAllBookingsByOwner(userId, state)
                 .stream()
                 .map(BookingMapper::mapToBookingResponseDto)
                 .toList();
