@@ -37,7 +37,7 @@ public class UserClient extends BaseClient {
         return get("");
     }
 
-    public ResponseEntity<Object> findUserById(Long userId) {
+    public ResponseEntity<Object> getUserById(Long userId) {
         return get("/" + userId, userId);
     }
 

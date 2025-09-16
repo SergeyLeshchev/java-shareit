@@ -11,9 +11,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "bookings")
-@Getter
-@Setter
-@ToString
+@Data
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

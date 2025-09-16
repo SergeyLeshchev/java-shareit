@@ -7,7 +7,7 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.List;
 
 public interface ItemService {
-    Item createItem(Item item, Long userId);
+    Item createItem(Item item, Long userId, Long itemRequestId);
 
     Item updateItem(Long userId, Long itemId, UpdateItemRequest updateItemRequest);
 

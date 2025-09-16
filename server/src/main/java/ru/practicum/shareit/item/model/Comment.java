@@ -10,9 +10,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "comments")
-@Getter
-@Setter
-@ToString
+@Data
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

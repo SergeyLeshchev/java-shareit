@@ -1,17 +1,12 @@
 package ru.practicum.shareit.item.mapper;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.model.Comment;
 
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
-@Component
-@RequiredArgsConstructor
 public class CommentMapper {
-
     public static CommentDto mapToCommentDto(Comment comment) {
         return new CommentDto(
                 comment.getId(),
@@ -28,7 +23,7 @@ public class CommentMapper {
                 commentDto.getText(),
                 null,
                 null,
-                ZonedDateTime.now()
+                ZonedDateTime.now(ZoneOffset.UTC)
         );
     }
 }

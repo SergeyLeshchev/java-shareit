@@ -18,6 +18,7 @@ public class ItemMapper {
                 null,
                 null,
                 List.of(),
+                null,
                 null
         );
         if (item.getOwner() != null) {
@@ -30,7 +31,7 @@ public class ItemMapper {
     }
 
     public static Item mapToItem(ItemDto itemDto) {
-        Item item = new Item(
+        return new Item(
                 itemDto.getId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
@@ -38,9 +39,5 @@ public class ItemMapper {
                 null,
                 null
         );
-        if (itemDto.getOwner() != null) {
-            item.setOwner(UserMapper.mapToUser(itemDto.getOwner()));
-        }
-        return item;
     }
 }

@@ -10,7 +10,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -31,9 +31,6 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Вещь с таким id не найдена"));
         booking.setBooker(booker);
         booking.setItem(item);
-        if (booking.getStart().equals(booking.getEnd())) {
-            throw new BadRequestException("Начало и завершение бронирования не могут быть в одно время");
-        }
         if (!item.getAvailable()) {
             throw new BadRequestException("Нельзя забронировать вещь, которая недоступна");
         }
@@ -41,7 +38,7 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings = bookingRepository.findAllByItemId(item.getId());
         if (bookings.stream()
                 // Выбираем только те бронирования, которые актуальны на настоящий момент
-                .filter(b -> b.getEnd().isAfter(ZonedDateTime.now(ZoneId.of("UTC"))))
+                .filter(b -> b.getEnd().isAfter(ZonedDateTime.now(ZoneOffset.UTC)))
                 // Проверяем пересекается ли новое бронирование с уже существующими
                 .anyMatch(b -> !(booking.getStart().isAfter(b.getEnd()) ||
                         booking.getEnd().isBefore(b.getStart())))) {
@@ -53,15 +50,14 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking updateBookingState(Long userId, Long bookingId, Boolean approved) {
-        if (approved == null) {
-            throw new BadRequestException("Чтобы изменить статус бронирования, нужно передать параметр approved " +
-                    "со значением true или false");
-        }
         // Проверка на существование бронирования
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
+        // Проверка на существование пользователя
+        // Тесты в Postman хотят чтобы код ответа в этом случае был 403
+        userRepository.findById(userId)
+                .orElseThrow(() -> new DataAccessException("Пользователь с таким id не найден"));
         // Здесь проверка покажет, является ли пользователь владельцем вещи.
-        // Если пользователь не существует, то так же будет выброшено исключение
         if (!userId.equals(booking.getItem().getOwner().getId())) {
             throw new DataAccessException("Менять статус бронирования может только владелец бронируемой вещи");
         }
@@ -81,8 +77,10 @@ public class BookingServiceImpl implements BookingService {
         // Проверка на существование бронирования
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
+        // Проверка на существование пользователя
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с таким id не найден"));
         // Здесь проверка покажет, является ли пользователь владельцем вещи.
-        // Если пользователь не существует, то так же будет выброшено исключение
         if (!userId.equals(booking.getBooker().getId()) &&
                 !userId.equals(booking.getItem().getOwner().getId())) {
             throw new DataAccessException("Получить данные о бронировании может только автор " +

@@ -8,12 +8,11 @@ import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.user.mapper.UserMapper;
 
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 @Component
 @RequiredArgsConstructor
 public class BookingMapper {
-
     public static BookingResponseDto mapToBookingResponseDto(Booking booking) {
         return new BookingResponseDto(
                 booking.getId(),
@@ -26,11 +25,10 @@ public class BookingMapper {
     }
 
     public static Booking mapToBooking(Long userId, BookingRequestDto bookingRequestDto) {
-        ZoneId zoneId = ZoneId.of("UTC+0");
         return new Booking(
                 null,
-                bookingRequestDto.getStart().atZone(zoneId),
-                bookingRequestDto.getEnd().atZone(zoneId),
+                bookingRequestDto.getStart().atZone(ZoneOffset.UTC),
+                bookingRequestDto.getEnd().atZone(ZoneOffset.UTC),
                 null,
                 null,
                 null

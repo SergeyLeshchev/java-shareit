@@ -1,18 +1,13 @@
 package ru.practicum.shareit.request;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.ZonedDateTime;
 
-/**
- * TODO Sprint add-item-requests.
- */
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "requests")
 @Getter

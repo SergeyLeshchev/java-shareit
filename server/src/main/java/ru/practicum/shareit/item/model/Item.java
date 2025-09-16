@@ -9,9 +9,7 @@ import ru.practicum.shareit.user.model.User;
 @NoArgsConstructor
 @Entity
 @Table(name = "items")
-@Getter
-@Setter
-@ToString
+@Data
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

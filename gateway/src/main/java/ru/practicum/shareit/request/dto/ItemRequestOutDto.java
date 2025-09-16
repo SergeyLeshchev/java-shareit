@@ -1,7 +1,6 @@
 package ru.practicum.shareit.request.dto;
 
 import lombok.*;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.time.ZonedDateTime;
@@ -17,5 +16,5 @@ public class ItemRequestOutDto {
     private String description;
     private UserDto requestor;
     private ZonedDateTime created;
-    private List<ItemDto> items;
+    private List<ItemResponse> items;
 }
