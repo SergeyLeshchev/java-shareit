@@ -14,11 +14,8 @@ import ru.practicum.shareit.user.model.User;
 import java.time.ZonedDateTime;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Здесь тестируются только успешный сценарий, что при валидном запросе вызывается метод сервиса
 // и возвращается статус ответа 200

@@ -15,7 +15,7 @@ public class ItemRequestController {
 
     @PostMapping
     public ResponseEntity<Object> createItemRequest(@Positive @RequestHeader("X-Sharer-User-Id") Long userId,
-                                         @Valid @RequestBody ItemRequestInDto itemRequestInDto) {
+                                                    @Valid @RequestBody ItemRequestInDto itemRequestInDto) {
         return itemRequestClient.createItemRequest(userId, itemRequestInDto);
     }
 
