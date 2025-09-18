@@ -45,7 +45,7 @@ class BookingServiceImplTest {
         Booking expectedBooking = new Booking(1L, time.plusMinutes(2), time.plusMinutes(3), item, user, BookingState.WAITING);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(bookingRepository.findAllByItemId(itemId)).thenReturn(List.of());
+        when(bookingRepository.findAllByItemIdOrderByStartDesc(itemId)).thenReturn(List.of());
         when(bookingRepository.save(expectedBooking)).thenReturn(expectedBooking);
 
         Booking actualBooking = bookingService.createBooking(userId, itemId, booking);
@@ -65,7 +65,7 @@ class BookingServiceImplTest {
         Booking booking2 = new Booking(2L, time.plusMinutes(1), time.plusMinutes(3), null, null, null);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(bookingRepository.findAllByItemId(itemId)).thenReturn(List.of(booking2));
+        when(bookingRepository.findAllByItemIdOrderByStartDesc(itemId)).thenReturn(List.of(booking2));
 
         assertThrows(BadRequestException.class, () -> bookingService.createBooking(userId, itemId, booking));
         verify(bookingRepository, never()).save(any(Booking.class));
@@ -86,23 +86,6 @@ class BookingServiceImplTest {
         verify(bookingRepository, never()).save(any(Booking.class));
     }
 
-    // Валидация перенесена в контроллер
-    /*
-    @Test
-    void createBookingTest_whenStartEqualEnd_shouldThrowBadRequestException() {
-        long userId = 1L;
-        long itemId = 1L;
-        User user = new User(1L, "userName1", "email1@email.com");
-        Item item = new Item(1L, "itemName", "itemDescription", true, user, null);
-        ZonedDateTime time = ZonedDateTime.now(ZoneOffset.UTC);
-        Booking booking = new Booking(1L, time.plusMinutes(2), time.plusMinutes(2), null, null, null);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-
-        assertThrows(BadRequestException.class, () -> bookingService.createBooking(userId, itemId, booking));
-        verify(bookingRepository, never()).save(any(Booking.class));
-    }
-*/
     @Test
     void createBookingTest_whenItemNotExists_shouldThrowNotFoundException() {
         long userId = 1L;
@@ -299,12 +282,12 @@ class BookingServiceImplTest {
                 null, null, BookingState.APPROVED);
         List<Booking> expectedBookings = List.of(booking);
         when(userRepository.findById(userId)).thenReturn(Optional.of(booker));
-        when(bookingRepository.findAllByBookerIdAndState(userId, state)).thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdAndStateOrderByStartDesc(userId, state)).thenReturn(List.of(booking));
 
         List<Booking> actualBookings = bookingService.getAllBookingsByUser(userId, state);
 
         assertEquals(expectedBookings, actualBookings);
-        verify(bookingRepository, times(1)).findAllByBookerIdAndState(userId, state);
+        verify(bookingRepository, times(1)).findAllByBookerIdAndStateOrderByStartDesc(userId, state);
     }
 
     @Test
@@ -319,12 +302,12 @@ class BookingServiceImplTest {
                 null, null, BookingState.WAITING);
         List<Booking> expectedBookings = List.of(booking, booking1);
         when(userRepository.findById(userId)).thenReturn(Optional.of(booker));
-        when(bookingRepository.findAllByBookerId(userId)).thenReturn(List.of(booking, booking1));
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(userId)).thenReturn(List.of(booking, booking1));
 
         List<Booking> actualBookings = bookingService.getAllBookingsByUser(userId, state);
 
         assertEquals(expectedBookings, actualBookings);
-        verify(bookingRepository, times(1)).findAllByBookerId(userId);
+        verify(bookingRepository, times(1)).findAllByBookerIdOrderByStartDesc(userId);
     }
 
     @Test
@@ -333,8 +316,8 @@ class BookingServiceImplTest {
         BookingState state = BookingState.ALL;
 
         assertThrows(NotFoundException.class, () -> bookingService.getAllBookingsByUser(userId, state));
-        verify(bookingRepository, never()).findAllByBookerId(userId);
-        verify(bookingRepository, never()).findAllByBookerIdAndState(userId, state);
+        verify(bookingRepository, never()).findAllByBookerIdOrderByStartDesc(userId);
+        verify(bookingRepository, never()).findAllByBookerIdAndStateOrderByStartDesc(userId, state);
     }
 
     @Test
@@ -347,12 +330,12 @@ class BookingServiceImplTest {
                 null, null, BookingState.APPROVED);
         List<Booking> expectedBookings = List.of(booking);
         when(userRepository.findById(userId)).thenReturn(Optional.of(booker));
-        when(bookingRepository.findAllByItemOwnerIdAndState(userId, state)).thenReturn(List.of(booking));
+        when(bookingRepository.findAllByItemOwnerIdAndStateOrderByStartDesc(userId, state)).thenReturn(List.of(booking));
 
         List<Booking> actualBookings = bookingService.getAllBookingsByOwner(userId, state);
 
         assertEquals(expectedBookings, actualBookings);
-        verify(bookingRepository, times(1)).findAllByItemOwnerIdAndState(userId, state);
+        verify(bookingRepository, times(1)).findAllByItemOwnerIdAndStateOrderByStartDesc(userId, state);
     }
 
     @Test
@@ -367,12 +350,12 @@ class BookingServiceImplTest {
                 null, null, BookingState.WAITING);
         List<Booking> expectedBookings = List.of(booking, booking1);
         when(userRepository.findById(userId)).thenReturn(Optional.of(booker));
-        when(bookingRepository.findAllByItemOwnerId(userId)).thenReturn(List.of(booking, booking1));
+        when(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId)).thenReturn(List.of(booking, booking1));
 
         List<Booking> actualBookings = bookingService.getAllBookingsByOwner(userId, state);
 
         assertEquals(expectedBookings, actualBookings);
-        verify(bookingRepository, times(1)).findAllByItemOwnerId(userId);
+        verify(bookingRepository, times(1)).findAllByItemOwnerIdOrderByStartDesc(userId);
     }
 
     @Test
@@ -381,7 +364,7 @@ class BookingServiceImplTest {
         BookingState state = BookingState.ALL;
 
         assertThrows(NotFoundException.class, () -> bookingService.getAllBookingsByOwner(userId, state));
-        verify(bookingRepository, never()).findAllByItemOwnerId(userId);
-        verify(bookingRepository, never()).findAllByItemOwnerIdAndState(userId, state);
+        verify(bookingRepository, never()).findAllByItemOwnerIdOrderByStartDesc(userId);
+        verify(bookingRepository, never()).findAllByItemOwnerIdAndStateOrderByStartDesc(userId, state);
     }
 }

@@ -140,13 +140,13 @@ class ItemRequestServiceImplTest {
         List<ItemRequestOutDto> expectedItemsRequests = List.of(itemRequestOutDto);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(itemRequestRepository.findAllByRequestorId(userId)).thenReturn(List.of(itemRequest));
-        when(itemRepository.findAllByRequestId(itemRequest.getId())).thenReturn(List.of(item1, item2));
+        when(itemRepository.findAllByRequestIdIn(List.of(itemRequest.getId()))).thenReturn(List.of(item1, item2));
 
         List<ItemRequestOutDto> actualItemsRequests = itemRequestService.getItemRequestsByUser(userId);
 
         assertEquals(expectedItemsRequests, actualItemsRequests);
         verify(itemRequestRepository, times(1)).findAllByRequestorId(userId);
-        verify(itemRepository, times(1)).findAllByRequestId(itemRequest.getId());
+        verify(itemRepository, times(1)).findAllByRequestIdIn(List.of(itemRequest.getId()));
     }
 
     @Test
@@ -160,13 +160,13 @@ class ItemRequestServiceImplTest {
         List<ItemRequestOutDto> expectedItemsRequests = List.of(itemRequestOutDto);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(itemRequestRepository.findAllByRequestorId(userId)).thenReturn(List.of(itemRequest));
-        when(itemRepository.findAllByRequestId(itemRequest.getId())).thenReturn(List.of());
+        when(itemRepository.findAllByRequestIdIn(List.of(itemRequest.getId()))).thenReturn(List.of());
 
         List<ItemRequestOutDto> actualItemsRequests = itemRequestService.getItemRequestsByUser(userId);
 
         assertEquals(expectedItemsRequests, actualItemsRequests);
         verify(itemRequestRepository, times(1)).findAllByRequestorId(userId);
-        verify(itemRepository, times(1)).findAllByRequestId(itemRequest.getId());
+        verify(itemRepository, times(1)).findAllByRequestIdIn(List.of(itemRequest.getId()));
     }
 
     @Test

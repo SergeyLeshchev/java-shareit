@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.CommentRequestDto;
+import ru.practicum.shareit.item.dto.ItemInDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ItemControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -43,8 +42,7 @@ class ItemControllerTest {
 
     @Test
     void createItemTest() throws Exception {
-        ItemDto itemDto = new ItemDto(null, "itemName", "itemDescription", true,
-                null, null, null, null, null, null);
+        ItemInDto itemDto = new ItemInDto("itemName", "itemDescription", true, null);
         when(itemService.createItem(ItemMapper.mapToItem(itemDto), userId, itemDto.getRequestId())).thenReturn(expectedItem);
 
         mockMvc.perform(post("/items")
@@ -112,10 +110,8 @@ class ItemControllerTest {
 
     @Test
     void createCommentTest() throws Exception {
-        ItemDto itemDto = ItemMapper.mapToItemDto(expectedItem);
         ZonedDateTime created = ZonedDateTime.now(ZoneOffset.UTC);
-        CommentDto commentDto = new CommentDto(null, "textOfComment", itemDto,
-                "userName", created.toLocalDateTime());
+        CommentRequestDto commentRequestDto = new CommentRequestDto("textOfComment");
         Comment expectedComment = new Comment(1L, "textOfComment", expectedItem, owner, created);
         when(itemService.createComment(eq(userId), eq(itemId), any(Comment.class)))
                 .thenReturn(expectedComment);
@@ -123,7 +119,7 @@ class ItemControllerTest {
         mockMvc.perform(post("/items/{itemId}/comment", itemId)
                         .header("X-Sharer-User-Id", userId)
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(commentDto)))
+                        .content(objectMapper.writeValueAsString(commentRequestDto)))
                 .andExpect(status().isOk());
 
         verify(itemService, times(1))

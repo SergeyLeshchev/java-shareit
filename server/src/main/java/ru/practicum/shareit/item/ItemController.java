@@ -2,8 +2,10 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.CommentRequestDto;
+import ru.practicum.shareit.item.dto.CommentResponseDto;
+import ru.practicum.shareit.item.dto.ItemInDto;
+import ru.practicum.shareit.item.dto.ItemOutDto;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -17,36 +19,36 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
-                              @RequestBody ItemDto itemDto) {
+    public ItemOutDto createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @RequestBody ItemInDto itemDto) {
         Item item = itemService.createItem(ItemMapper.mapToItem(itemDto), userId, itemDto.getRequestId());
-        return ItemMapper.mapToItemDto(item);
+        return ItemMapper.mapToItemOutDto(item);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Long userId,
-                              @PathVariable Long itemId,
-                              @RequestBody UpdateItemRequest updateItemRequest) {
+    public ItemOutDto updateItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @PathVariable Long itemId,
+                                 @RequestBody UpdateItemRequest updateItemRequest) {
         Item item = itemService.updateItem(userId, itemId, updateItemRequest);
-        return ItemMapper.mapToItemDto(item);
+        return ItemMapper.mapToItemOutDto(item);
     }
 
     @GetMapping
-    public List<ItemDto> getItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemOutDto> getItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
         return itemService.getItemsByUserId(userId);
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
-                               @PathVariable Long itemId) {
+    public ItemOutDto getItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                  @PathVariable Long itemId) {
         return itemService.getItemById(itemId);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> getItemByText(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                       @RequestParam String text) {
+    public List<ItemOutDto> getItemByText(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                          @RequestParam String text) {
         return itemService.getItemsByText(text).stream()
-                .map(ItemMapper::mapToItemDto)
+                .map(ItemMapper::mapToItemOutDto)
                 .toList();
     }
 
@@ -57,10 +59,10 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDto createComment(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                    @PathVariable Long itemId,
-                                    @RequestBody CommentDto commentDto) {
-        return CommentMapper.mapToCommentDto(
+    public CommentResponseDto createComment(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                            @PathVariable Long itemId,
+                                            @RequestBody CommentRequestDto commentDto) {
+        return CommentMapper.mapToCommentResponseDto(
                 itemService.createComment(userId, itemId, CommentMapper.mapToComment(commentDto))
         );
     }

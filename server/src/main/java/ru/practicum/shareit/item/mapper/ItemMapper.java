@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.mapper;
 
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInDto;
+import ru.practicum.shareit.item.dto.ItemOutDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.user.mapper.UserMapper;
@@ -8,8 +9,8 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import java.util.List;
 
 public class ItemMapper {
-    public static ItemDto mapToItemDto(Item item) {
-        ItemDto itemDto = new ItemDto(
+    public static ItemOutDto mapToItemOutDto(Item item) {
+        ItemOutDto itemOutDto = new ItemOutDto(
                 item.getId(),
                 item.getName(),
                 item.getDescription(),
@@ -18,21 +19,20 @@ public class ItemMapper {
                 null,
                 null,
                 List.of(),
-                null,
                 null
         );
         if (item.getOwner() != null) {
-            itemDto.setOwner(UserMapper.mapToUserDto(item.getOwner()));
+            itemOutDto.setOwner(UserMapper.mapToUserResponseDto(item.getOwner()));
         }
         if (item.getRequest() != null) {
-            itemDto.setRequest(ItemRequestMapper.maptoItemRequestOutDto(item.getRequest()));
+            itemOutDto.setRequest(ItemRequestMapper.maptoItemRequestOutDto(item.getRequest()));
         }
-        return itemDto;
+        return itemOutDto;
     }
 
-    public static Item mapToItem(ItemDto itemDto) {
+    public static Item mapToItem(ItemInDto itemDto) {
         return new Item(
-                itemDto.getId(),
+                null,
                 itemDto.getName(),
                 itemDto.getDescription(),
                 itemDto.getAvailable(),

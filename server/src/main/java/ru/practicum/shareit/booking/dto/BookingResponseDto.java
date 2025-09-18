@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.BookingState;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.item.dto.ItemOutDto;
+import ru.practicum.shareit.user.dto.UserResponseDto;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +16,7 @@ public class BookingResponseDto {
     private Long id;
     private LocalDateTime start;
     private LocalDateTime end;
-    private ItemDto item;
-    private UserDto booker;
+    private ItemOutDto item;
+    private UserResponseDto booker;
     private BookingState status;
 }

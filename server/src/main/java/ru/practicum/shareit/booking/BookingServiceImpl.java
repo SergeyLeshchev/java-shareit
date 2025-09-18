@@ -35,7 +35,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BadRequestException("Нельзя забронировать вещь, которая недоступна");
         }
 
-        List<Booking> bookings = bookingRepository.findAllByItemId(item.getId());
+        List<Booking> bookings = bookingRepository.findAllByItemIdOrderByStartDesc(item.getId());
         if (bookings.stream()
                 // Выбираем только те бронирования, которые актуальны на настоящий момент
                 .filter(b -> b.getEnd().isAfter(ZonedDateTime.now(ZoneOffset.UTC)))
@@ -94,10 +94,18 @@ public class BookingServiceImpl implements BookingService {
         // Проверка существования пользователя
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (state.equals(BookingState.ALL)) {
-            return bookingRepository.findAllByBookerId(userId);
-        }
-        return bookingRepository.findAllByBookerIdAndState(userId, state);
+
+        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        List<Booking> bookings = switch (state) {
+            case APPROVED, WAITING, REJECTED ->
+                    bookingRepository.findAllByBookerIdAndStateOrderByStartDesc(userId, state);
+            case PAST -> bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
+            case CURRENT ->
+                    bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now);
+            case FUTURE -> bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now);
+            case ALL -> bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
+        };
+        return bookings;
     }
 
     @Override
@@ -105,9 +113,17 @@ public class BookingServiceImpl implements BookingService {
         // Проверка существования пользователя
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (state.equals(BookingState.ALL)) {
-            return bookingRepository.findAllByItemOwnerId(userId);
-        }
-        return bookingRepository.findAllByItemOwnerIdAndState(userId, state);
+
+        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        List<Booking> bookings = switch (state) {
+            case APPROVED, WAITING, REJECTED ->
+                    bookingRepository.findAllByItemOwnerIdAndStateOrderByStartDesc(userId, state);
+            case PAST -> bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now);
+            case CURRENT ->
+                    bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now);
+            case FUTURE -> bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now);
+            case ALL -> bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
+        };
+        return bookings;
     }
 }

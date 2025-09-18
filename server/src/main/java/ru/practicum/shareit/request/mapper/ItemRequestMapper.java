@@ -15,7 +15,7 @@ public class ItemRequestMapper {
         return new ItemRequestOutDto(
                 itemRequest.getId(),
                 itemRequest.getDescription(),
-                UserMapper.mapToUserDto(itemRequest.getRequestor()),
+                UserMapper.mapToUserResponseDto(itemRequest.getRequestor()),
                 itemRequest.getCreated(),
                 null
         );

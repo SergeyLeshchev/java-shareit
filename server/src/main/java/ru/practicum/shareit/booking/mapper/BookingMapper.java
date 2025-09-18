@@ -18,8 +18,8 @@ public class BookingMapper {
                 booking.getId(),
                 booking.getStart().toLocalDateTime(),
                 booking.getEnd().toLocalDateTime(),
-                ItemMapper.mapToItemDto(booking.getItem()),
-                UserMapper.mapToUserDto(booking.getBooker()),
+                ItemMapper.mapToItemOutDto(booking.getItem()),
+                UserMapper.mapToUserResponseDto(booking.getBooker()),
                 booking.getState()
         );
     }

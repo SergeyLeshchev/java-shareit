@@ -11,7 +11,10 @@ import ru.practicum.shareit.request.dto.ItemResponse;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.user.UserRepository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,20 +60,31 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         if (itemRequests.isEmpty()) {
             throw new NotFoundException("У пользователя нет запросов");
         }
-        List<ItemRequestOutDto> itemRequestsOutDto = itemRequests.stream()
-                // Преобразуем все запросы в ItemRequestOutDto
-                .map(ItemRequestMapper::maptoItemRequestOutDto)
-                .peek(ir -> {
-                    // Находим каждому ItemRequestOutDto список вещей
-                    List<ItemResponse> items = itemRepository.findAllByRequestId(ir.getId()).stream()
-                            // Преобразуем каждую вещь в списке в ItemDto
-                            .map(ItemRequestMapper::mapToItemResponse)
-                            .toList();
-                    // Сохраняем список вещей в ItemRequestOutDto
-                    ir.setItems(items);
-                })
+        List<Long> requestIds = itemRequests.stream()
+                .map(ItemRequest::getId)
                 .toList();
 
-        return itemRequestsOutDto;
+        Map<Long, List<Item>> itemsForEachItem = itemRepository.findAllByRequestIdIn(requestIds).stream()
+                .collect(Collectors.groupingBy(i -> i.getRequest().getId()));
+
+        List<ItemRequestOutDto> itemRequestOutDtoList = new ArrayList<>();
+        if (!itemsForEachItem.isEmpty()) {
+            itemRequests.forEach(ir -> {
+                List<ItemResponse> itemsForItemRequest = itemsForEachItem.get(ir.getId()).stream()
+                        .map(ItemRequestMapper::mapToItemResponse)
+                        .toList();
+                ItemRequestOutDto itemRequestOutDto = ItemRequestMapper.maptoItemRequestOutDto(ir);
+                itemRequestOutDto.setItems(itemsForItemRequest);
+                itemRequestOutDtoList.add(itemRequestOutDto);
+            });
+        } else {
+            itemRequests.forEach(ir -> {
+                ItemRequestOutDto itemRequestOutDto = ItemRequestMapper.maptoItemRequestOutDto(ir);
+                itemRequestOutDto.setItems(List.of());
+                itemRequestOutDtoList.add(itemRequestOutDto);
+            });
+        }
+
+        return itemRequestOutDtoList;
     }
 }

@@ -11,7 +11,7 @@ import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.DataAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemOutDto;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
@@ -207,21 +207,21 @@ class ItemServiceImplTest {
         Comment comment2 = new Comment(2L, "comment2Text", item2, booker, ZonedDateTime.now());
         List<Comment> comments = List.of(comment1, comment2);
         // Создаем то, что должен вернуть метод
-        List<ItemDto> expectedItems = List.of(
-                ItemMapper.mapToItemDto(item1),
-                ItemMapper.mapToItemDto(item2)
+        List<ItemOutDto> expectedItems = List.of(
+                ItemMapper.mapToItemOutDto(item1),
+                ItemMapper.mapToItemOutDto(item2)
         );
         expectedItems.get(0).setLastBooking(time2.toLocalDateTime());
         expectedItems.get(1).setNextBooking(time3.toLocalDateTime());
-        expectedItems.get(0).setComments(List.of(CommentMapper.mapToCommentDto(comment1)));
-        expectedItems.get(1).setComments(List.of(CommentMapper.mapToCommentDto(comment2)));
+        expectedItems.get(0).setComments(List.of(CommentMapper.mapToCommentResponseDto(comment1)));
+        expectedItems.get(1).setComments(List.of(CommentMapper.mapToCommentResponseDto(comment2)));
 
         when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
         when(itemRepository.findAllByOwnerId(booker.getId())).thenReturn(items);
-        when(bookingRepository.findAllByItemOwnerId(booker.getId())).thenReturn(bookings);
+        when(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(booker.getId())).thenReturn(bookings);
         when(commentRepository.findAll()).thenReturn(comments);
 
-        List<ItemDto> actualItems = itemService.getItemsByUserId(booker.getId());
+        List<ItemOutDto> actualItems = itemService.getItemsByUserId(booker.getId());
 
         assertEquals(expectedItems, actualItems);
     }
@@ -234,16 +234,16 @@ class ItemServiceImplTest {
         Item item1 = new Item(1L, "itemName", "itemDescription", true, booker, null);
         Item item2 = new Item(2L, "itemName2", "itemDescription2", true, booker, null);
         List<Item> items = List.of(item1, item2);
-        List<ItemDto> expectedItems = List.of(
-                ItemMapper.mapToItemDto(item1),
-                ItemMapper.mapToItemDto(item2)
+        List<ItemOutDto> expectedItems = List.of(
+                ItemMapper.mapToItemOutDto(item1),
+                ItemMapper.mapToItemOutDto(item2)
         );
         when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
         when(itemRepository.findAllByOwnerId(booker.getId())).thenReturn(items);
-        when(bookingRepository.findAllByItemOwnerId(booker.getId())).thenReturn(List.of());
+        when(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(booker.getId())).thenReturn(List.of());
         when(commentRepository.findAll()).thenReturn(List.of());
 
-        List<ItemDto> actualItems = itemService.getItemsByUserId(booker.getId());
+        List<ItemOutDto> actualItems = itemService.getItemsByUserId(booker.getId());
 
         assertEquals(expectedItems, actualItems);
     }
@@ -277,15 +277,15 @@ class ItemServiceImplTest {
         Item item = new Item(1L, "itemName", "itemDescription", true, owner, null);
         Comment comment1 = new Comment(1L, "comment1Text", item, author, ZonedDateTime.now());
         Comment comment2 = new Comment(2L, "comment2Text", item, author, ZonedDateTime.now());
-        ItemDto expectedDto = ItemMapper.mapToItemDto(item);
+        ItemOutDto expectedDto = ItemMapper.mapToItemOutDto(item);
         expectedDto.setComments(List.of(
-                CommentMapper.mapToCommentDto(comment1),
-                CommentMapper.mapToCommentDto(comment2)
+                CommentMapper.mapToCommentResponseDto(comment1),
+                CommentMapper.mapToCommentResponseDto(comment2)
         ));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
         when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of(comment1, comment2));
 
-        ItemDto actualDto = itemService.getItemById(itemId);
+        ItemOutDto actualDto = itemService.getItemById(itemId);
         assertEquals(expectedDto, actualDto);
     }
 
@@ -295,11 +295,11 @@ class ItemServiceImplTest {
         long itemId = 1L;
         User owner = new User(1L, "userName1", "email1@email.com");
         Item item = new Item(1L, "itemName", "itemDescription", true, owner, null);
-        ItemDto expectedDto = ItemMapper.mapToItemDto(item);
+        ItemOutDto expectedDto = ItemMapper.mapToItemOutDto(item);
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
         when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of());
 
-        ItemDto actualDto = itemService.getItemById(itemId);
+        ItemOutDto actualDto = itemService.getItemById(itemId);
 
         assertEquals(expectedDto, actualDto);
         verify(commentRepository, times(1)).findAllByItemId(itemId);
@@ -422,7 +422,7 @@ class ItemServiceImplTest {
         Comment comment = new Comment(1L, "comment1Text", item, user, time);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
-        when(bookingRepository.findAllByBookerId(user.getId())).thenReturn(List.of());
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(user.getId())).thenReturn(List.of());
 
         assertThrows(BadRequestException.class, () -> itemService.createComment(user.getId(), item.getId(), comment));
         verify(commentRepository, never()).save(comment);
@@ -437,7 +437,7 @@ class ItemServiceImplTest {
         Comment comment = new Comment(1L, "comment1Text", item, user, time);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
-        when(bookingRepository.findAllByBookerId(user.getId())).thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(user.getId())).thenReturn(List.of(booking));
 
         assertThrows(BadRequestException.class, () -> itemService.createComment(user.getId(), item.getId(), comment));
         verify(commentRepository, never()).save(comment);
@@ -452,7 +452,7 @@ class ItemServiceImplTest {
         Comment expectedComment = new Comment(1L, "comment1Text", item, user, time);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
-        when(bookingRepository.findAllByBookerId(user.getId())).thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(user.getId())).thenReturn(List.of(booking));
         when(commentRepository.save(expectedComment)).thenReturn(expectedComment);
 
         Comment actualComment = itemService.createComment(user.getId(), item.getId(), expectedComment);

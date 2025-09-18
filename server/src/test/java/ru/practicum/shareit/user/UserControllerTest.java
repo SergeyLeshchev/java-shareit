@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserRequestDto;
 import ru.practicum.shareit.user.model.User;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +35,7 @@ class UserControllerTest {
 
     @Test
     void createUserTest() throws Exception {
-        UserDto userDto = new UserDto(null, "userName", "email@email.com");
+        UserRequestDto userDto = new UserRequestDto("userName", "email@email.com");
         when(userService.createUser(any(User.class))).thenReturn(expectedUser);
 
         mockMvc.perform(post("/users")

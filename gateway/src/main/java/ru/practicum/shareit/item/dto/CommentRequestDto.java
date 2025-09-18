@@ -6,17 +6,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
-
 @AllArgsConstructor
 @Getter
 @Setter
 @ToString
-public class CommentDto {
-    private Long id;
+public class CommentRequestDto {
     @NotBlank
     private String text;
-    private ItemDto item;
-    private String authorName;
-    private LocalDateTime created;
 }

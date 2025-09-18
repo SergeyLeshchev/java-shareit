@@ -8,7 +8,7 @@ import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.DataAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemOutDto;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
@@ -74,7 +74,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemsByUserId(Long userId) {
+    public List<ItemOutDto> getItemsByUserId(Long userId) {
         // Проверка существования пользователя
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Item> items = itemRepository.findAllByOwnerId(userId);
@@ -83,11 +83,11 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("У данного пользователя нет вещей");
         }
         // Преобразуем в itemDto так как только у них есть поля lastBooking и nextBooking
-        List<ItemDto> itemDtos = items.stream()
-                .map(ItemMapper::mapToItemDto)
+        List<ItemOutDto> itemOutDtos = items.stream()
+                .map(ItemMapper::mapToItemOutDto)
                 .toList();
 
-        List<Booking> bookings = bookingRepository.findAllByItemOwnerId(userId);
+        List<Booking> bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
         // Получаем список бронирований для каждой вещи
         Map<Long, List<Booking>> bookingsForEachItem;
         if (!bookings.isEmpty()) {
@@ -102,7 +102,7 @@ public class ItemServiceImpl implements ItemService {
 
         // Находим и присваиваем каждой вещи даты последнего и следующего бронирований
         if (!bookingsForEachItem.isEmpty()) {
-            itemDtos.forEach(itemDto -> {
+            itemOutDtos.forEach(itemDto -> {
                 List<Booking> bookingsForItem = bookingsForEachItem.get(itemDto.getId());
 
                 Booking lastBooking = bookingsForItem.stream()
@@ -129,38 +129,38 @@ public class ItemServiceImpl implements ItemService {
         }
         // Присваиваем каждой вещи комментарии
         if (!commentsForEachItem.isEmpty()) {
-            itemDtos.forEach(itemDto -> {
+            itemOutDtos.forEach(itemDto -> {
                 List<Comment> comments = commentsForEachItem.get(itemDto.getId());
                 if (comments != null && !comments.isEmpty()) {
                     itemDto.setComments(
                             comments.stream()
-                                    .map(CommentMapper::mapToCommentDto)
+                                    .map(CommentMapper::mapToCommentResponseDto)
                                     .toList()
                     );
                 }
             });
         }
-        return itemDtos;
+        return itemOutDtos;
     }
 
     @Override
-    public ItemDto getItemById(Long itemId) {
+    public ItemOutDto getItemById(Long itemId) {
         // Проверка существования вещи
-        ItemDto itemDto = ItemMapper.mapToItemDto(
+        ItemOutDto itemOutDto = ItemMapper.mapToItemOutDto(
                 itemRepository.findById(itemId)
                         .orElseThrow(() -> new NotFoundException("Не найдена вещь"))
         );
         // Проверка существования комментариев
         List<Comment> comments = commentRepository.findAllByItemId(itemId);
         if (comments != null && !comments.isEmpty()) {
-            itemDto.setComments(
+            itemOutDto.setComments(
                     comments.stream()
-                            .map(CommentMapper::mapToCommentDto)
+                            .map(CommentMapper::mapToCommentResponseDto)
                             .toList()
             );
         }
 
-        return itemDto;
+        return itemOutDto;
     }
 
     @Override
@@ -197,7 +197,7 @@ public class ItemServiceImpl implements ItemService {
         comment.setAuthor(author);
         comment.setItem(item);
 
-        List<Booking> bookings = bookingRepository.findAllByBookerId(userId);
+        List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
         // Проверка, что у пользователя есть бронирования на эту вещь
         if (bookings.isEmpty()) {
             throw new BadRequestException("Оставлять комментарий к вещи может только пользователь, " +

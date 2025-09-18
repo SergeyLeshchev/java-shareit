@@ -99,4 +99,17 @@ class ItemRepositoryIT {
 
         assertEquals(expectedItems, actualItems);
     }
+
+    @Test
+    void findAllByRequestIdInTest() {
+        apple = itemRepository.findById(apple.getId())
+                .orElseThrow(() -> new NotFoundException("Вещь с таким id не найдена"));
+        ball = itemRepository.findById(ball.getId())
+                .orElseThrow(() -> new NotFoundException("Вещь с таким id не найдена"));
+        List<Item> expectedItems = List.of(apple, ball);
+
+        List<Item> actualItems = itemRepository.findAllByRequestIdIn(List.of(requestBall.getId()));
+
+        assertEquals(expectedItems, actualItems);
+    }
 }
