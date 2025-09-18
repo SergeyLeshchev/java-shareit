@@ -48,9 +48,9 @@ public class ItemRequestServiceIT {
 
     @Test
     void getBookingByIdTest() {
-        ItemRequest ItemRequest = itemRequestRepository.findById(requestApple.getId())
+        ItemRequest itemRequest = itemRequestRepository.findById(requestApple.getId())
                 .orElseThrow(() -> new NotFoundException("Запрос с таким id не найден"));
-        ItemRequestOutDto expectedItemRequest = ItemRequestMapper.maptoItemRequestOutDto(ItemRequest);
+        ItemRequestOutDto expectedItemRequest = ItemRequestMapper.maptoItemRequestOutDto(itemRequest);
         expectedItemRequest.setItems(List.of());
 
         ItemRequestOutDto actualItemRequest = itemRequestService.getItemRequestById(requestApple.getId());

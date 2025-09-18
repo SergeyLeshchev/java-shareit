@@ -161,8 +161,8 @@ class BookingRepositoryIT {
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
         List<Booking> expectedBookings = List.of(bookingApple, bookingTable);
 
-        List<Booking> actualBookings = bookingRepository.
-                findAllByBookerIdAndEndBeforeOrderByStartDesc(petr.getId(), time);
+        List<Booking> actualBookings = bookingRepository
+                .findAllByBookerIdAndEndBeforeOrderByStartDesc(petr.getId(), time);
 
         assertEquals(expectedBookings, actualBookings);
     }
@@ -186,8 +186,8 @@ class BookingRepositoryIT {
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
         List<Booking> expectedBookings = List.of(bookingApple, bookingTable);
 
-        List<Booking> actualBookings = bookingRepository.
-                findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(petr.getId(), time, time);
+        List<Booking> actualBookings = bookingRepository
+                .findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(petr.getId(), time, time);
 
         assertEquals(expectedBookings, actualBookings);
     }
@@ -200,8 +200,8 @@ class BookingRepositoryIT {
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
         List<Booking> expectedBookings = List.of(bookingTable, bookingApple);
 
-        List<Booking> actualBookings = bookingRepository.
-                findAllByBookerIdAndStartAfterOrderByStartDesc(petr.getId(), time);
+        List<Booking> actualBookings = bookingRepository
+                .findAllByBookerIdAndStartAfterOrderByStartDesc(petr.getId(), time);
 
         assertEquals(expectedBookings, actualBookings);
     }
@@ -259,8 +259,8 @@ class BookingRepositoryIT {
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
         List<Booking> expectedBookings = List.of(bookingTableIvan, bookingTable, bookingApple);
 
-        List<Booking> actualBookings = bookingRepository.
-                findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(bookingApple.getItem().getOwner().getId(), time);
+        List<Booking> actualBookings = bookingRepository
+                .findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(bookingApple.getItem().getOwner().getId(), time);
 
         assertEquals(expectedBookings, actualBookings);
     }
@@ -286,8 +286,8 @@ class BookingRepositoryIT {
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
         List<Booking> expectedBookings = List.of(bookingTableIvan, bookingTable, bookingApple);
 
-        List<Booking> actualBookings = bookingRepository.
-                findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(
+        List<Booking> actualBookings = bookingRepository
+                .findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(
                         bookingApple.getItem().getOwner().getId(), time, time);
 
         assertEquals(expectedBookings, actualBookings);
@@ -303,8 +303,8 @@ class BookingRepositoryIT {
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
         List<Booking> expectedBookings = List.of(bookingTableIvan, bookingTable, bookingApple);
 
-        List<Booking> actualBookings = bookingRepository.
-                findAllByItemOwnerIdAndStartAfterOrderByStartDesc(
+        List<Booking> actualBookings = bookingRepository
+                .findAllByItemOwnerIdAndStartAfterOrderByStartDesc(
                         bookingApple.getItem().getOwner().getId(), time);
 
         assertEquals(expectedBookings, actualBookings);
@@ -318,7 +318,8 @@ class BookingRepositoryIT {
                 .orElseThrow(() -> new NotFoundException("Бронирование с таким id не найдено"));
         List<Booking> expectedBookings = List.of(bookingTableIvan, bookingTable);
 
-        List<Booking> actualBookings = bookingRepository.findAllByItemIdOrderByStartDesc(bookingTable.getItem().getId());
+        List<Booking> actualBookings = bookingRepository
+                .findAllByItemIdOrderByStartDesc(bookingTable.getItem().getId());
 
         assertEquals(expectedBookings, actualBookings);
     }
